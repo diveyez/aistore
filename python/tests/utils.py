@@ -23,7 +23,7 @@ def create_and_put_object(
     provider: str = "ais",
     obj_size: int = 0,
 ):
-    obj_size = obj_size if obj_size else random.randrange(10, 20)
+    obj_size = obj_size or random.randrange(10, 20)
     obj_body = "".join(random.choices(string.ascii_letters, k=obj_size))
     content = obj_body.encode(UTF_ENCODING)
     temp_file = Path(tempfile.gettempdir()).joinpath(os.urandom(24).hex())

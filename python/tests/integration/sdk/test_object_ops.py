@@ -122,7 +122,6 @@ class TestObjectOps(unittest.TestCase):
         "localhost" not in CLUSTER_ENDPOINT and "127.0.0.1" not in CLUSTER_ENDPOINT,
         "Cannot test promote without access to AIS cluster file storage",
     )
-    # pylint: disable=too-many-locals
     def test_promote(self):
         LOCAL_TEST_FILES.mkdir()
         top_folder = LOCAL_TEST_FILES.joinpath("promote_folder")
@@ -150,7 +149,7 @@ class TestObjectOps(unittest.TestCase):
         self.bucket.object(obj_name).promote(str(local_files_path))
         # Check bucket, only top object is promoted
         self.assertEqual(1, len(self.bucket.list_all_objects()))
-        top_object = self.bucket.object(obj_name + "/" + top_item).get()
+        top_object = self.bucket.object(f"{obj_name}/{top_item}").get()
         self.assertEqual(top_item_contents, top_object.read_all().decode(UTF_ENCODING))
 
         # Update local top item contents
@@ -169,12 +168,12 @@ class TestObjectOps(unittest.TestCase):
         )
         # Check bucket, both objects promoted, top overwritten
         self.assertEqual(2, len(self.bucket.list_all_objects()))
-        expected_top_obj = obj_name + "/" + top_item
+        expected_top_obj = f"{obj_name}/{top_item}"
         top_obj = self.bucket.object(expected_top_obj).get()
         self.assertEqual(
             top_item_updated_contents, top_obj.read_all().decode(UTF_ENCODING)
         )
-        inner_obj = self.bucket.object(obj_name + "/inner_folder/" + inner_item).get()
+        inner_obj = self.bucket.object(f"{obj_name}/inner_folder/{inner_item}").get()
         self.assertEqual(inner_item_contents, inner_obj.read_all().decode(UTF_ENCODING))
         # Check source deleted
         top_level_files = [

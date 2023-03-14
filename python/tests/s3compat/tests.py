@@ -197,7 +197,7 @@ def test_make_bucket_with_region(log_entry):
     log_entry["method"] = _CLIENT.make_bucket
 
 
-def test_negative_make_bucket_invalid_name(log_entry):  # pylint: disable=invalid-name
+def test_negative_make_bucket_invalid_name(log_entry):    # pylint: disable=invalid-name
     """Test make_bucket() with invalid bucket name."""
 
     # Get a unique bucket_name
@@ -208,9 +208,9 @@ def test_negative_make_bucket_invalid_name(log_entry):  # pylint: disable=invali
     }
     # Create an array of invalid bucket names to test
     invalid_bucket_name_list = [
-        bucket_name + ".",
-        "." + bucket_name,
-        bucket_name + "...abcd",
+        f"{bucket_name}.",
+        f".{bucket_name}",
+        f"{bucket_name}...abcd",
     ]
     for name in invalid_bucket_name_list:
         log_entry["args"]["bucket_name"] = name
@@ -411,7 +411,7 @@ def _validate_stat(st_obj, expected_size, expected_meta, version_id=None):
             received_is_dir,
         )
 
-    if not all(i in received_metadata.items() for i in expected_meta.items()):
+    if any(i not in received_metadata.items() for i in expected_meta.items()):
         raise ValueError("Metadata key 'x-amz-meta-testing' not found")
 
 
@@ -426,8 +426,8 @@ def test_copy_object_no_copy_condition(  # pylint: disable=invalid-name
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
@@ -461,8 +461,8 @@ def test_copy_object_with_metadata(log_entry):
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
     metadata = {
         "testing-string": "string",
         "testing-int": 1,
@@ -510,8 +510,8 @@ def test_copy_object_etag_match(log_entry):
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
@@ -545,14 +545,14 @@ def test_copy_object_etag_match(log_entry):
         _CLIENT.remove_bucket(bucket_name)
 
 
-def test_copy_object_negative_etag_match(log_entry):  # pylint: disable=invalid-name
+def test_copy_object_negative_etag_match(log_entry):    # pylint: disable=invalid-name
     """Test copy_object() with etag not match condition."""
 
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
@@ -591,8 +591,8 @@ def test_copy_object_modified_since(log_entry):
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
@@ -624,14 +624,14 @@ def test_copy_object_modified_since(log_entry):
         _CLIENT.remove_bucket(bucket_name)
 
 
-def test_copy_object_unmodified_since(log_entry):  # pylint: disable=invalid-name
+def test_copy_object_unmodified_since(log_entry):    # pylint: disable=invalid-name
     """Test copy_object() with unmodified since condition."""
 
     # Get a unique bucket_name and object_name
     bucket_name = _gen_bucket_name()
     object_name = f"{uuid4()}"
-    object_source = object_name + "-source"
-    object_copy = object_name + "-copy"
+    object_source = f"{object_name}-source"
+    object_copy = f"{object_name}-copy"
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
@@ -706,10 +706,10 @@ def test_put_object(log_entry, sse=None):
             "test-key": "value2",
         }
         log_entry["args"]["content_type"] = content_type = "application/octet-stream"
-        log_entry["args"]["object_name"] = object_name + "-metadata"
+        log_entry["args"]["object_name"] = f"{object_name}-metadata"
         _CLIENT.put_object(
             bucket_name,
-            object_name + "-metadata",
+            f"{object_name}-metadata",
             reader,
             length,
             content_type,
@@ -719,7 +719,7 @@ def test_put_object(log_entry, sse=None):
         # Stat on the uploaded object to check if it exists
         # Fetch saved stat metadata on a previously uploaded object with
         # metadata.
-        st_obj = _CLIENT.stat_object(bucket_name, object_name + "-metadata", ssec=sse)
+        st_obj = _CLIENT.stat_object(bucket_name, f"{object_name}-metadata", ssec=sse)
         normalized_meta = {
             key.lower(): value for key, value in (st_obj.metadata or {}).items()
         }
@@ -732,7 +732,7 @@ def test_put_object(log_entry, sse=None):
             raise ValueError("Metadata key 'x-amz-meta-test-key' not found")
     finally:
         _CLIENT.remove_object(bucket_name, object_name)
-        _CLIENT.remove_object(bucket_name, object_name + "-metadata")
+        _CLIENT.remove_object(bucket_name, f"{object_name}-metadata")
         _CLIENT.remove_bucket(bucket_name)
 
 
@@ -815,10 +815,10 @@ def _test_stat_object(log_entry, sse=None, version_check=False):
         log_entry["args"]["data"] = "LimitedRandomReader(11 * MB)"
         log_entry["args"]["metadata"] = metadata = {"X-Amz-Meta-Testing": "value"}
         log_entry["args"]["content_type"] = content_type = "application/octet-stream"
-        log_entry["args"]["object_name"] = object_name + "-metadata"
+        log_entry["args"]["object_name"] = f"{object_name}-metadata"
         result = _CLIENT.put_object(
             bucket_name,
-            object_name + "-metadata",
+            f"{object_name}-metadata",
             reader,
             length,
             content_type,
@@ -831,7 +831,7 @@ def _test_stat_object(log_entry, sse=None, version_check=False):
         # metadata.
         st_obj = _CLIENT.stat_object(
             bucket_name,
-            object_name + "-metadata",
+            f"{object_name}-metadata",
             ssec=sse,
             version_id=version_id2,
         )
@@ -845,9 +845,7 @@ def _test_stat_object(log_entry, sse=None, version_check=False):
     finally:
         _CLIENT.remove_object(bucket_name, object_name, version_id=version_id1)
         _CLIENT.remove_object(
-            bucket_name,
-            object_name + "-metadata",
-            version_id=version_id2,
+            bucket_name, f"{object_name}-metadata", version_id=version_id2
         )
         _CLIENT.remove_bucket(bucket_name)
 
@@ -1135,17 +1133,11 @@ def _test_list_objects(log_entry, use_api_v1=False, version_check=False):
             )
         size = 1 * KB
         result = _CLIENT.put_object(
-            bucket_name,
-            object_name + "-1",
-            LimitedRandomReader(size),
-            size,
+            bucket_name, f"{object_name}-1", LimitedRandomReader(size), size
         )
         version_id1 = result.version_id
         result = _CLIENT.put_object(
-            bucket_name,
-            object_name + "-2",
-            LimitedRandomReader(size),
-            size,
+            bucket_name, f"{object_name}-2", LimitedRandomReader(size), size
         )
         version_id2 = result.version_id
         # List all object paths in bucket.
@@ -1172,16 +1164,8 @@ def _test_list_objects(log_entry, use_api_v1=False, version_check=False):
                     f"got:{obj.version_id}"
                 )
     finally:
-        _CLIENT.remove_object(
-            bucket_name,
-            object_name + "-1",
-            version_id=version_id1,
-        )
-        _CLIENT.remove_object(
-            bucket_name,
-            object_name + "-2",
-            version_id=version_id2,
-        )
+        _CLIENT.remove_object(bucket_name, f"{object_name}-1", version_id=version_id1)
+        _CLIENT.remove_object(bucket_name, f"{object_name}-2", version_id=version_id2)
         _CLIENT.remove_bucket(bucket_name)
 
 
@@ -1305,7 +1289,7 @@ def test_list_objects_with_prefix(log_entry):
     log_entry["args"]["recursive"] = "Several prefix/recursive combinations are tested"
 
 
-def test_list_objects_with_1001_files(log_entry):  # pylint: disable=invalid-name
+def test_list_objects_with_1001_files(log_entry):    # pylint: disable=invalid-name
     """Test list_objects() with more 1000 objects."""
 
     # Get a unique bucket_name and object_name
@@ -1314,7 +1298,7 @@ def test_list_objects_with_1001_files(log_entry):  # pylint: disable=invalid-nam
 
     log_entry["args"] = {
         "bucket_name": bucket_name,
-        "object_name": f"{object_name}_0 ~ {0}_1000",
+        "object_name": f"{object_name}_0 ~ 0_1000",
     }
 
     _CLIENT.make_bucket(bucket_name)
@@ -1730,10 +1714,9 @@ def _get_policy_actions(stat):
         return value if isinstance(value, list) else [value]
 
     actions = [listit(s.get("Action")) for s in stat if s.get("Action")]
-    actions = list(
-        set(item.replace("s3:", "") for sublist in actions for item in sublist)
+    actions = sorted(
+        {item.replace("s3:", "") for sublist in actions for item in sublist}
     )
-    actions.sort()
     return actions
 
 
@@ -1787,14 +1770,14 @@ def test_set_bucket_policy_readonly(log_entry):
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
                     "Action": "s3:GetBucketLocation",
-                    "Resource": "arn:aws:s3:::" + bucket_name,
+                    "Resource": f"arn:aws:s3:::{bucket_name}",
                 },
                 {
                     "Sid": "",
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
                     "Action": "s3:ListBucket",
-                    "Resource": "arn:aws:s3:::" + bucket_name,
+                    "Resource": f"arn:aws:s3:::{bucket_name}",
                 },
                 {
                     "Sid": "",
@@ -1814,7 +1797,7 @@ def test_set_bucket_policy_readonly(log_entry):
         _CLIENT.remove_bucket(bucket_name)
 
 
-def test_set_bucket_policy_readwrite(log_entry):  # pylint: disable=invalid-name
+def test_set_bucket_policy_readwrite(log_entry):    # pylint: disable=invalid-name
     """Test set_bucket_policy() with read/write policy."""
 
     # Get a unique bucket_name
@@ -1832,21 +1815,21 @@ def test_set_bucket_policy_readwrite(log_entry):  # pylint: disable=invalid-name
                 {
                     "Action": ["s3:GetBucketLocation"],
                     "Sid": "",
-                    "Resource": ["arn:aws:s3:::" + bucket_name],
+                    "Resource": [f"arn:aws:s3:::{bucket_name}"],
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
                 },
                 {
                     "Action": ["s3:ListBucket"],
                     "Sid": "",
-                    "Resource": ["arn:aws:s3:::" + bucket_name],
+                    "Resource": [f"arn:aws:s3:::{bucket_name}"],
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
                 },
                 {
                     "Action": ["s3:ListBucketMultipartUploads"],
                     "Sid": "",
-                    "Resource": ["arn:aws:s3:::" + bucket_name],
+                    "Resource": [f"arn:aws:s3:::{bucket_name}"],
                     "Effect": "Allow",
                     "Principal": {"AWS": "*"},
                 },
@@ -1907,12 +1890,12 @@ def _test_remove_objects(log_entry, version_check=False):
             )
         log_entry["args"]["delete_object_list"] = object_names
 
-        for args in object_names:
-            delete_object_list.append(
-                DeleteObject(args)
-                if isinstance(args, str)
-                else DeleteObject(args[0], args[1])
-            )
+        delete_object_list.extend(
+            DeleteObject(args)
+            if isinstance(args, str)
+            else DeleteObject(args[0], args[1])
+            for args in object_names
+        )
         # delete the objects in a single library call.
         errs = _CLIENT.remove_objects(bucket_name, delete_object_list)
         for err in errs:
@@ -2001,15 +1984,9 @@ def main():
         with open(_LARGE_FILE, "wb") as file_data:
             shutil.copyfileobj(LimitedRandomReader(11 * MB), file_data)
 
-    ssec = None
-    if secure:
-        # Create a Customer Key of 32 Bytes for Server Side Encryption (SSE-C)
-        cust_key = b"AABBCCDDAABBCCDDAABBCCDDAABBCCDD"
-        # Create an SSE-C object with provided customer key
-        ssec = SseCustomerKey(cust_key)
-
-    if os.getenv("MINT_MODE") == "full":
-        tests = {
+    ssec = SseCustomerKey(b"AABBCCDDAABBCCDDAABBCCDDAABBCCDD") if secure else None
+    tests = (
+        {
             test_make_bucket_default_region: None,
             test_make_bucket_with_region: None,
             test_negative_make_bucket_invalid_name: None,
@@ -2017,7 +1994,10 @@ def main():
             test_fput_object_small_file: {"sse": ssec} if ssec else None,
             test_fput_object_large_file: {"sse": ssec} if ssec else None,
             test_fput_object_with_content_type: None,
-            test_copy_object_no_copy_condition: {"ssec_copy": ssec, "ssec": ssec}
+            test_copy_object_no_copy_condition: {
+                "ssec_copy": ssec,
+                "ssec": ssec,
+            }
             if ssec
             else None,
             test_copy_object_etag_match: None,
@@ -2055,8 +2035,8 @@ def main():
             test_get_bucket_notification: None,
             test_select_object_content: None,
         }
-    else:
-        tests = {
+        if os.getenv("MINT_MODE") == "full"
+        else {
             test_make_bucket_default_region: None,
             test_list_buckets: None,
             test_put_object: {"sse": ssec} if ssec else None,
@@ -2068,7 +2048,10 @@ def main():
             test_presigned_get_object_default_expiry: None,
             test_presigned_put_object_default_expiry: None,
             test_presigned_post_policy: None,
-            test_copy_object_no_copy_condition: {"ssec_copy": ssec, "ssec": ssec}
+            test_copy_object_no_copy_condition: {
+                "ssec_copy": ssec,
+                "ssec": ssec,
+            }
             if ssec
             else None,
             test_select_object_content: None,
@@ -2076,17 +2059,13 @@ def main():
             test_set_bucket_policy_readonly: None,
             test_get_bucket_notification: None,
         }
-
-    tests.update(
-        {
-            test_remove_object: None,
-            test_remove_object_version: None,
-            test_remove_objects: None,
-            test_remove_object_versions: None,
-            test_remove_bucket: None,
-        },
-    )
-
+    ) | {
+        test_remove_object: None,
+        test_remove_object_version: None,
+        test_remove_objects: None,
+        test_remove_object_versions: None,
+        test_remove_bucket: None,
+    }
     for test_name, arg_list in tests.items():
         args = ()
         kwargs = {}

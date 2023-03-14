@@ -21,5 +21,5 @@ class IntegrationTestCase(BotocoreBaseTest):
         from aistore.botocore_patch import botocore
 
         self.use_moto = False
-        self.endpoint_url = CLUSTER_ENDPOINT + "/s3"
+        self.endpoint_url = f"{CLUSTER_ENDPOINT}/s3"
         self.redirect_errors_expected = False

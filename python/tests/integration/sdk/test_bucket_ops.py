@@ -14,7 +14,9 @@ from tests.utils import create_and_put_object, random_string, cleanup_local
 from tests.integration import CLUSTER_ENDPOINT, REMOTE_BUCKET
 
 # If remote bucket is not set, skip all cloud-related tests
-REMOTE_SET = REMOTE_BUCKET != "" and not REMOTE_BUCKET.startswith(PROVIDER_AIS + ":")
+REMOTE_SET = REMOTE_BUCKET != "" and not REMOTE_BUCKET.startswith(
+    f"{PROVIDER_AIS}:"
+)
 LOCAL_TEST_FILES = Path().absolute().joinpath("object-ops-test")
 
 INNER_DIR = "directory"
@@ -74,11 +76,9 @@ class TestBucketOps(unittest.TestCase):
 
     def _cleanup_objects(self):
         cloud_bck = self.client.bucket(self.cloud_bck, self.provider)
-        # Clean up any other objects created with the test prefix, potentially from aborted tests
-        object_names = [
+        if object_names := [
             x.name for x in cloud_bck.list_objects(self.obj_prefix).get_entries()
-        ]
-        if len(object_names) > 0:
+        ]:
             job_id = cloud_bck.objects(obj_names=object_names).delete()
             self.client.job(job_id).wait(timeout=CLEANUP_TIMEOUT)
 
@@ -106,8 +106,8 @@ class TestBucketOps(unittest.TestCase):
             self.assertEqual(err.response.status_code, 404)
 
     def test_rename_bucket(self):
-        from_bck_n = self.bck_name + "from"
-        to_bck_n = self.bck_name + "to"
+        from_bck_n = f"{self.bck_name}from"
+        to_bck_n = f"{self.bck_name}to"
         self.create_bucket(from_bck_n)
         res = self.client.cluster().list_buckets()
         count = len(res)
@@ -138,8 +138,8 @@ class TestBucketOps(unittest.TestCase):
         self.assertEqual(count, count_new)
 
     def test_copy_bucket(self):
-        from_bck = self.bck_name + "from"
-        to_bck = self.bck_name + "to"
+        from_bck = f"{self.bck_name}from"
+        to_bck = f"{self.bck_name}to"
         self.create_bucket(from_bck)
         self.create_bucket(to_bck)
 
@@ -237,9 +237,10 @@ class TestBucketOps(unittest.TestCase):
 
         # Expect all objects to be prefixed by custom_name and with no relative path in the name due to basename opt
         joined_file_data = {**TOP_LEVEL_FILES, **LOWER_LEVEL_FILES}
-        expected_res = {}
-        for obj_name, expected_data in joined_file_data.items():
-            expected_res[custom_name + obj_name] = expected_data
+        expected_res = {
+            custom_name + obj_name: expected_data
+            for obj_name, expected_data in joined_file_data.items()
+        }
         self._verify_obj_res(bucket, expected_res)
 
     def test_put_files_filtered(self):

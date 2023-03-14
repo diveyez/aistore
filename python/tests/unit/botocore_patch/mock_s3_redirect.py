@@ -32,7 +32,7 @@ redirections_enabled = True  # pylint: disable=invalid-name
 
 def s3_response_wrapper(
     wrapped, instance, args, kwargs
-):  # pylint: disable=unused-argument
+):    # pylint: disable=unused-argument
     """
     Patch various internal S3Response methods in moto to issue
     redirects.
@@ -77,10 +77,7 @@ def s3_response_wrapper(
             if isinstance(key, str):
                 url += f"/{key}"
             attempt = int(args[0]["amz-sdk-request"].split(";")[0].split("=")[1])
-        elif method == "HEAD":
-            url = None
-            attempt = None
-        elif method == "POST":
+        elif method in ["HEAD", "POST"]:
             url = None
             attempt = None
         logging.debug(
@@ -97,14 +94,14 @@ def s3_response_wrapper(
     if attempt < 5:
         ret = list(ret)
         ret[0] = 307
-        ret[1]["Location"] = url + "?andthenanotherthing"
+        ret[1]["Location"] = f"{url}?andthenanotherthing"
         ret[1]["Server"] = "AIStore"
         ret = tuple(ret)
     return ret
 
 
 @wrapt.when_imported("moto.s3.responses")
-def patch_moto(module):  # pylint: disable=unused-variable
+def patch_moto(module):    # pylint: disable=unused-variable
     """
     Meta-mock our moto mocks to make them send redirects on occasion.
 
@@ -112,4 +109,4 @@ def patch_moto(module):  # pylint: disable=unused-variable
     """
     for func in test_ops:
         logging.debug("Patching S3Response.%s", func)
-        wrapt.wrap_function_wrapper(module, "S3Response." + func, s3_response_wrapper)
+        wrapt.wrap_function_wrapper(module, f"S3Response.{func}", s3_response_wrapper)

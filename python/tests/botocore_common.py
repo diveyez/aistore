@@ -120,7 +120,7 @@ class BotocoreBaseTest(unittest.TestCase):
     def test_bucket_create(self):
         # When integration testing against a real aistore, this won't redirect.
         redirect_errors_expected = (
-            False if not self.use_moto else self.redirect_errors_expected
+            self.redirect_errors_expected if self.use_moto else False
         )
 
         with MightRedirect(redirect_errors_expected, operation="_bucket_response_put"):
@@ -217,12 +217,9 @@ class MightRedirect:
                 # Some operations don't pass through redirect errors directly
                 if self.operation in ["_bucket_response_put"]:
                     return True
-                if int(ex.response["Error"]["Code"]) in [302, 307]:
+                if int(ex.response["Error"]["Code"]) in {302, 307}:
                     return True
-            instead = "No error"
-            if value:
-                instead = value
-
+            instead = value or "No error"
             raise Exception(
                 "A ClientError with a redirect code was expected, "
                 + "but didn't happen. Instead: "

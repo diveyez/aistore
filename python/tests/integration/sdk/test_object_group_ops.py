@@ -43,7 +43,7 @@ class TestObjectGroupOps(RemoteEnabledTest):
         expected_object_names = [
             self.obj_prefix + str(x) + self.obj_suffix for x in range(0, 9, 2)
         ]
-        expected_object_names.append(self.obj_prefix + "9" + self.obj_suffix)
+        expected_object_names.append(f"{self.obj_prefix}9{self.obj_suffix}")
         self._delete_test_helper(object_group, expected_object_names)
 
     def _delete_test_helper(self, object_group, expected_object_names):
@@ -151,7 +151,7 @@ class TestObjectGroupOps(RemoteEnabledTest):
     @pytest.mark.etl
     def test_transform_objects(self):
         # Define an etl with code that hashes the contents of each object
-        etl_name = "etl-" + random_string(5)
+        etl_name = f"etl-{random_string(5)}"
 
         def transform(input_bytes):
             md5 = hashlib.md5()

@@ -208,6 +208,4 @@ class ObjectGroup:
             return {"objnames": self.obj_names}
         if self.obj_range:
             return {"template": str(self.obj_range)}
-        if self.obj_template:
-            return {"template": self.obj_template}
-        return {}
+        return {"template": self.obj_template} if self.obj_template else {}

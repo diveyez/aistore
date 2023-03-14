@@ -47,9 +47,9 @@ class TestPytorchPlugin(unittest.TestCase):
             )
 
         prefixes = [
-            ["ais://" + self.bck_name],
-            ["ais://" + self.bck_name + "/"],
-            ["ais://" + self.bck_name + "/temp/", "ais://" + self.bck_name + "/obj"],
+            [f"ais://{self.bck_name}"],
+            [f"ais://{self.bck_name}/"],
+            [f"ais://{self.bck_name}/temp/", f"ais://{self.bck_name}/obj"],
         ]
         for prefix in prefixes:
             urls = AISFileLister(url=CLUSTER_ENDPOINT, source_datapipe=prefix)
@@ -74,16 +74,14 @@ class TestPytorchPlugin(unittest.TestCase):
         for url in url_list:
             with self.assertRaises(AISError):
                 s3_loader_dp = AISFileLoader(url=CLUSTER_ENDPOINT, source_datapipe=url)
-                for _ in s3_loader_dp:
-                    pass
 
     def test_torch_library(self):
         # Tests the torch library imports of aistore
         torch_pipes.AISFileLister(
-            url=CLUSTER_ENDPOINT, source_datapipe=["ais://" + self.bck_name]
+            url=CLUSTER_ENDPOINT, source_datapipe=[f"ais://{self.bck_name}"]
         )
         torch_pipes.AISFileLoader(
-            url=CLUSTER_ENDPOINT, source_datapipe=["ais://" + self.bck_name]
+            url=CLUSTER_ENDPOINT, source_datapipe=[f"ais://{self.bck_name}"]
         )
 
 

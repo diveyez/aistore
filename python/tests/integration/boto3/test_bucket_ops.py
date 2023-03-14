@@ -20,7 +20,7 @@ class BotoTest(TestCase):
         self.client = boto3.client(
             "s3",
             region_name=AWS_REGION,
-            endpoint_url=CLUSTER_ENDPOINT + "/s3",
+            endpoint_url=f"{CLUSTER_ENDPOINT}/s3",
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
             aws_session_token=AWS_SESSION_TOKEN,
@@ -62,7 +62,7 @@ class BotoTest(TestCase):
         key = "object-name"
         data_len = 100
         num_parts = 4
-        chunk_size = int(data_len / num_parts)
+        chunk_size = data_len // num_parts
         data = random_string(data_len)
         parts = [data[i * chunk_size : (i + 1) * chunk_size] for i in range(num_parts)]
         bucket_name = self.create_bucket()

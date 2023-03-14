@@ -10,7 +10,7 @@ def unpack_msgpack(path):
             fqn = os.path.join("/tmp/unpacked", name)
             with open(fqn, "wb") as fh:
                 fh.write(content)
-            print("unpacked " + fqn)
+            print(f"unpacked {fqn}")
 
 
 if __name__ == "__main__":

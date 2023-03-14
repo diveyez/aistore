@@ -13,7 +13,7 @@ class TestRequestClient(unittest.TestCase):  # pylint: disable=unused-variable
             self.request_client = RequestClient(self.endpoint)
 
     def test_properties(self):
-        self.assertEqual(self.endpoint + "/v1", self.request_client.base_url)
+        self.assertEqual(f"{self.endpoint}/v1", self.request_client.base_url)
         self.assertEqual(self.endpoint, self.request_client.endpoint)
         self.assertEqual(self.mock_session, self.request_client.session)
 
@@ -21,7 +21,7 @@ class TestRequestClient(unittest.TestCase):  # pylint: disable=unused-variable
     def test_request_deserialize(self, mock_parse):
         method = "method"
         path = "path"
-        req_url = self.request_client.base_url + "/" + path
+        req_url = f"{self.request_client.base_url}/{path}"
         app_header = {"Accept": "application/json"}
 
         deserialized_response = Mock()
@@ -41,7 +41,7 @@ class TestRequestClient(unittest.TestCase):  # pylint: disable=unused-variable
     def test_request(self):
         method = "method"
         path = "path"
-        req_url = self.request_client.base_url + "/" + path
+        req_url = f"{self.request_client.base_url}/{path}"
         app_header = {"Accept": "application/json"}
 
         mock_response = Mock()

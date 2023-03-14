@@ -44,10 +44,14 @@ def list_objects_info(client: Client, urls_list: List[str]) -> List[Mapping[str,
         objects = client.bucket(bck_name=bck_name, provider=provider).list_objects(
             prefix=path
         )
-        for obj_info in objects.get_entries():
-            samples.append(
-                {"provider": provider, "bck_name": bck_name, "object": obj_info.name}
-            )
+        samples.extend(
+            {
+                "provider": provider,
+                "bck_name": bck_name,
+                "object": obj_info.name,
+            }
+            for obj_info in objects.get_entries()
+        )
     return samples
 
 

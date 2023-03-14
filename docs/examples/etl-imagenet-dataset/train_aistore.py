@@ -142,14 +142,14 @@ def main_worker(gpu, ngpus_per_node, args):
     args.gpu = gpu
 
     if args.gpu is not None:
-        print("Use GPU: {} for training".format(args.gpu))
+        print(f"Use GPU: {args.gpu} for training")
 
     # create model
     if args.pretrained:
-        print("=> using pre-trained model '{}'".format(args.arch))
+        print(f"=> using pre-trained model '{args.arch}'")
         model = models.__dict__[args.arch](pretrained=True)
     else:
-        print("=> creating model '{}'".format(args.arch))
+        print(f"=> creating model '{args.arch}'")
         model = models.__dict__[args.arch]()
 
     if not torch.cuda.is_available():
@@ -157,13 +157,11 @@ def main_worker(gpu, ngpus_per_node, args):
     elif args.gpu is not None:
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
+    elif args.arch.startswith("alexnet") or args.arch.startswith("vgg"):
+        model.features = torch.nn.DataParallel(model.features)
+        model.cuda()
     else:
-        # DataParallel will divide and allocate batch_size to all available GPUs
-        if args.arch.startswith("alexnet") or args.arch.startswith("vgg"):
-            model.features = torch.nn.DataParallel(model.features)
-            model.cuda()
-        else:
-            model = torch.nn.DataParallel(model).cuda()
+        model = torch.nn.DataParallel(model).cuda()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
@@ -178,12 +176,12 @@ def main_worker(gpu, ngpus_per_node, args):
     # optionally resume from a checkpoint
     if args.resume:
         if os.path.isfile(args.resume):
-            print("=> loading checkpoint '{}'".format(args.resume))
+            print(f"=> loading checkpoint '{args.resume}'")
             if args.gpu is None:
                 checkpoint = torch.load(args.resume)
             else:
                 # Map model to be loaded to specified single gpu.
-                loc = "cuda:{}".format(args.gpu)
+                loc = f"cuda:{args.gpu}"
                 checkpoint = torch.load(args.resume, map_location=loc)
             args.start_epoch = checkpoint["epoch"]
             best_acc1 = checkpoint["best_acc1"]
@@ -193,12 +191,10 @@ def main_worker(gpu, ngpus_per_node, args):
             model.load_state_dict(checkpoint["state_dict"])
             optimizer.load_state_dict(checkpoint["optimizer"])
             print(
-                "=> loaded checkpoint '{}' (epoch {})".format(
-                    args.resume, checkpoint["epoch"]
-                )
+                f"""=> loaded checkpoint '{args.resume}' (epoch {checkpoint["epoch"]})"""
             )
         else:
-            print("=> no checkpoint found at '{}'".format(args.resume))
+            print(f"=> no checkpoint found at '{args.resume}'")
 
     cudnn.benchmark = True
 
@@ -269,7 +265,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
     progress = ProgressMeter(
         len(train_loader),
         [batch_time, data_time, losses, top1, top5],
-        prefix="Epoch: [{}]".format(epoch),
+        prefix=f"Epoch: [{epoch}]",
     )
 
     # switch to train mode
@@ -398,7 +394,7 @@ class ProgressMeter(object):
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
         fmt = "{:" + str(num_digits) + "d}"
-        return "[" + fmt + "/" + fmt.format(num_batches) + "]"
+        return f"[{fmt}/{fmt.format(num_batches)}]"
 
 
 def adjust_learning_rate(optimizer, epoch, args):

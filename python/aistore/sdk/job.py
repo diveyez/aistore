@@ -178,7 +178,7 @@ class Job:
                 logger.info("No information found for job %s, retrying", self._job_id)
                 job_info_found = False
             if passed > timeout:
-                if len(snapshots) == 0:
+                if not snapshots:
                     raise Timeout(action, "No job information found.")
                 if not job_info_found:
                     raise Timeout(
@@ -228,7 +228,7 @@ class Job:
             requests.ReadTimeout: Timed out waiting response from AIStore
         """
         job_args = JobArgs(kind=self._job_kind, daemon_id=daemon_id)
-        if buckets and len(buckets) > 0:
+        if buckets:
             bucket_models = [
                 BucketModel(
                     name=bck.name, provider=bck.provider, namespace=bck.namespace

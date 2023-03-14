@@ -27,16 +27,14 @@ class ObjectIterator:
         return self
 
     def __next__(self) -> BucketEntry:
-        # Iterator is exhausted.
-        if len(self._fetched) == 0 and self._token == "" and self._uuid != "":
-            raise StopIteration
-        # Read the next page of objects.
         if len(self._fetched) == 0:
+            if self._token == "" and self._uuid != "":
+                raise StopIteration
             resp = self._list_objects(uuid=self._uuid, token=self._token)
             self._fetched = resp.get_entries()
             self._uuid = resp.uuid
             self._token = resp.continuation_token
-            # Empty page and token mean no more objects left.
-            if len(self._fetched) == 0 and self._token == "":
-                raise StopIteration
+        # Empty page and token mean no more objects left.
+        if len(self._fetched) == 0 and self._token == "":
+            raise StopIteration
         return self._fetched.pop(0)

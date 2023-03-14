@@ -172,10 +172,9 @@ class Etl:
         Returns:
             List[ETL]: A list of running ETLs
         """
-        resp = self.client.request_deserialize(
+        return self.client.request_deserialize(
             HTTP_METHOD_GET, path=URL_PATH_ETL, res_model=List[ETL]
         )
-        return resp
 
     def view(self, etl_name: str) -> ETLDetails:
         """
@@ -186,10 +185,11 @@ class Etl:
         Returns:
             ETLDetails: details of the ETL
         """
-        resp = self.client.request_deserialize(
-            HTTP_METHOD_GET, path=f"{URL_PATH_ETL}/{etl_name}", res_model=ETLDetails
+        return self.client.request_deserialize(
+            HTTP_METHOD_GET,
+            path=f"{URL_PATH_ETL}/{etl_name}",
+            res_model=ETLDetails,
         )
-        return resp
 
     def start(self, etl_name: str):
         """

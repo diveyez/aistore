@@ -52,40 +52,41 @@ load_global_defaults()
 
 
 def load_ais_cluster(cluster_name, clients):
-    # pylint: disable=redefined-outer-name
-    ais = {"targets": None, "proxy": None, "clients": None, "new_targets": None}
     ec2_conn = ec2_connect_to_region()
-    ais["targets"] = ec2_conn.get_only_instances(
-        filters={"tag:Name": cluster_name + "_Target*"}
-    )
+    ais = {
+        "proxy": None,
+        "clients": None,
+        "new_targets": None,
+        "targets": ec2_conn.get_only_instances(
+            filters={"tag:Name": f"{cluster_name}_Target*"}
+        ),
+    }
     ais["new_targets"] = ec2_conn.get_only_instances(
-        filters={"tag:Name": cluster_name + "_NewTarget*"}
+        filters={"tag:Name": f"{cluster_name}_NewTarget*"}
     )
     ais["proxy"] = ec2_conn.get_only_instances(
-        filters={"tag:Name": cluster_name + "_Proxy*"}
+        filters={"tag:Name": f"{cluster_name}_Proxy*"}
     )
     ais["clients"] = ec2_conn.get_only_instances(
-        filters={"tag:Name": cluster_name + "_Client*"}
+        filters={"tag:Name": f"{cluster_name}_Client*"}
     )
     if len(ais["clients"]) > clients:
         ais["clients"] = ais["clients"][
             :clients
         ]  # pylint: disable=unsubscriptable-object
-        logger.info(
-            "Considering reduced number of clients {}".format(len(ais["clients"]))
-        )
+        logger.info(f'Considering reduced number of clients {len(ais["clients"])}')
 
     cluster_inventory = os.path.join(
         os.path.dirname(__file__), "inventory", "cluster.ini"
     )
     cluster_txt = os.path.join(os.path.dirname(__file__), "inventory", "cluster.txt")
-    with open(cluster_inventory, "w") as c, open(cluster_txt, "w") as ct:
-        for key in ais:
+    with (open(cluster_inventory, "w") as c, open(cluster_txt, "w") as ct):
+        for key, value in ais.items():
             print(key)
-            c.write("[" + key + "]\n")
-            file = os.path.join(os.path.dirname(__file__), "inventory", key + ".txt")
+            c.write(f"[{key}" + "]\n")
+            file = os.path.join(os.path.dirname(__file__), "inventory", f"{key}.txt")
             with open(file, "w") as f:
-                for instance in ais[key]:
+                for instance in value:
                     ip = instance.private_ip_address
                     print(ip)
                     c.write(ip + "\n")
@@ -104,7 +105,7 @@ def ec2_connect_to_region(region=None):
             region, aws_access_key_id=AWS_AK, aws_secret_access_key=AWS_SAK
         )
     except Exception as e:
-        logger.error("EC2 connection failed - {}".format(repr(e)))
+        logger.error(f"EC2 connection failed - {repr(e)}")
         raise ConnectionError("EC2 connection failed") from e
     return conn
 
@@ -127,7 +128,7 @@ def create_vpc(vpc_conn, ec2_conn):
         logger.info(vpc_list[0].id)
         return vpc_list[0].id
 
-    logger.info("creating vpc:{}".format(vpc_name))
+    logger.info(f"creating vpc:{vpc_name}")
     vpc = vpc_conn.create_vpc("10.0.0.0/16", instance_tenancy="default")
     logger.info(vpc.id)
     ec2_conn.create_tags([vpc.id], {"Name": vpc_name})
@@ -140,7 +141,7 @@ def create_subnet(vpc_conn, ec2_conn, vpc_id):
         logger.info(subnet_list[0].id)
         return subnet_list[0].id
 
-    logger.info("creating subnet:{}".format(subnet_name))
+    logger.info(f"creating subnet:{subnet_name}")
     subnet = vpc_conn.create_subnet(vpc_id, "10.0.0.0/16")
     logger.info(subnet.id)
     ec2_conn.create_tags([subnet.id], {"Name": subnet_name})
@@ -154,7 +155,7 @@ def create_security_group(ec2_conn, vpc_id):
     if len(sg_list) > 0:
         return sg_list[0].id
 
-    logger.info("creating security group:{}".format(security_group_name))
+    logger.info(f"creating security group:{security_group_name}")
     sg = ec2_conn.create_security_group(
         security_group_name, "diagnolab test server sg", vpc_id=vpc_id
     )
@@ -204,7 +205,7 @@ def create_internet_gateway(vpc_conn, ec2_conn, vpc_id):
         logger.info(gateway_list[0].id)
         return gateway_list[0].id
 
-    logger.info("creating internet gateway:{}".format(gateway_name))
+    logger.info(f"creating internet gateway:{gateway_name}")
     gateway = vpc_conn.create_internet_gateway()
     logger.info(gateway.id)
     ec2_conn.create_tags([gateway.id], {"Name": gateway_name})
@@ -220,7 +221,7 @@ def create_route_table(vpc_conn, ec2_conn, vpc_id, gateway_id, sunbet_id):
         logger.info(route_table_list[0].id)
         return route_table_list[0].id
 
-    logger.info("creating route table:{}".format(route_table_name))
+    logger.info(f"creating route table:{route_table_name}")
     route_table = vpc_conn.create_route_table(vpc_id)
     logger.info(route_table.id)
     ec2_conn.create_tags([route_table.id], {"Name": route_table_name})
@@ -256,13 +257,13 @@ def launch_instance(region_name, ami_id):
             instance_initiated_shutdown_behavior="terminate",
         )
         for instance in reservation.instances:
-            logger.info(instance.id + " state=" + instance.state)
+            logger.info(f"{instance.id} state={instance.state}")
         instance = reservation.instances[0]
         instance.update()
         while instance.state != "running":
             time.sleep(5)
             instance.update()
-            logger.info(instance.id + " state=" + instance.state)
+            logger.info(f"{instance.id} state={instance.state}")
         instance_ip = instance.ip_address
         instance.add_tag("Name", "Diagnolab Test server")
     return instance_ip
@@ -271,10 +272,7 @@ def launch_instance(region_name, ami_id):
 # pylint: disable=unused-variable
 def check_instance_health(server_address):
     try:
-        return urllib2.urlopen(
-            "http://" + server_address + ":8080/v1/health/"
-        ).getcode()
-    # pylint: disable=bare-except
+        return urllib2.urlopen(f"http://{server_address}:8080/v1/health/").getcode()
     except:
         return 503
 
@@ -320,12 +318,12 @@ def terminate_instance(region_name, ip_address):
     if len(instances) > 0:
         instances[0].terminate()
     else:
-        logger.info("failed to terminate instance with ip {}".format(str(ip_address)))
+        logger.info(f"failed to terminate instance with ip {str(ip_address)}")
 
 
 def start_ais_cluster(ais):
     for key in ais:
-        logger.info("Booting ais {}".format(key))
+        logger.info(f"Booting ais {key}")
         start_stop_instance(ais[key], "running")
     # Additional sleep to make sure every instance is up for SSH connection
     time.sleep(15)
@@ -333,7 +331,7 @@ def start_ais_cluster(ais):
 
 def stop_ais_cluster(ais):
     for key in ais:
-        logger.info("Shutting down ais {}".format(key))
+        logger.info(f"Shutting down ais {key}")
         start_stop_instance(ais[key], "stopped")
 
 

@@ -522,10 +522,8 @@ class Bucket:
 
     @staticmethod
     def _get_uploaded_obj_name(file, root_path, basename, prefix):
-        obj_name = str(file.relative_to(root_path)) if not basename else file.name
-        if prefix:
-            return prefix + obj_name
-        return obj_name
+        obj_name = file.name if basename else str(file.relative_to(root_path))
+        return prefix + obj_name if prefix else obj_name
 
     def object(self, obj_name: str) -> Object:
         """
@@ -592,7 +590,7 @@ class Bucket:
             method,
             path=f"{URL_PATH_BUCKETS}/{self.name}",
             json=json_val,
-            params=params if params else self.qparam,
+            params=params or self.qparam,
         )
 
     def _verify_ais_bucket(self):

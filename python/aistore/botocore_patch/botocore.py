@@ -72,7 +72,7 @@ def _ais_redirect_wrapper(wrapped, instance, args, kwargs):
 
 
 @wrapt.when_imported("botocore.utils")
-def _apply_patches(module):  # pylint: disable=unused-variable
+def _apply_patches(module):    # pylint: disable=unused-variable
     """
     When botocore.utils is imported, patch it to handle redirects.
 
@@ -97,5 +97,7 @@ def _apply_patches(module):  # pylint: disable=unused-variable
             _expected_sig
         )
         wrapt.wrap_function_wrapper(
-            module, redirector.__name__ + ".redirect_from_error", _ais_redirect_wrapper
+            module,
+            f"{redirector.__name__}.redirect_from_error",
+            _ais_redirect_wrapper,
         )

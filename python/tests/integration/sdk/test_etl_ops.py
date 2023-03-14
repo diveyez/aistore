@@ -17,11 +17,11 @@ from aistore.sdk.etl_templates import MD5, ECHO
 from tests.integration import CLUSTER_ENDPOINT
 from tests.utils import create_and_put_object, random_string
 
-ETL_NAME_CODE = "etl-" + random_string(5)
-ETL_NAME_CODE_IO = "etl-" + random_string(5)
-ETL_NAME_CODE_STREAM = "etl-" + random_string(5)
-ETL_NAME_SPEC = "etl-" + random_string(5)
-ETL_NAME_SPEC_COMP = "etl-" + random_string(5)
+ETL_NAME_CODE = f"etl-{random_string(5)}"
+ETL_NAME_CODE_IO = f"etl-{random_string(5)}"
+ETL_NAME_CODE_STREAM = f"etl-{random_string(5)}"
+ETL_NAME_SPEC = f"etl-{random_string(5)}"
+ETL_NAME_SPEC_COMP = f"etl-{random_string(5)}"
 
 
 # pylint: disable=unused-variable
@@ -281,7 +281,7 @@ class TestETLOps(unittest.TestCase):
             checksum = hashlib.md5()
             key = b"AISTORE"
             for byte in reader:
-                out = bytes([_a ^ _b for _a, _b in zip(byte, cycle(key))])
+                out = bytes(_a ^ _b for _a, _b in zip(byte, cycle(key)))
                 writer.write(out)
                 checksum.update(out)
             writer.write(checksum.hexdigest().encode())
